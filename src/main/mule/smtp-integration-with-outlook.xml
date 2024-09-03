@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:email="http://www.mulesoft.org/schema/mule/email"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+	<http:listener-config name="HTTP_Listener_config"
+		doc:name="HTTP Listener config"
+		doc:id="cb4a7c12-4d25-4ebf-a293-8c7fdc386dbc">
+		<http:listener-connection host="0.0.0.0"
+			port="8081" />
+	</http:listener-config>
+	<email:smtp-config name="Email_SMTP_Outlook"
+		doc:name="Email SMTP">
+		<email:smtp-connection host="smtp.office365.com"
+			port="587" user="user-mail-address" password="user-mail-password">
+			<email:properties>
+				<email:property key="mail.smtp.starttls.enable"
+					value="true" />
+				<email:property key="mail.smtp.connectiontimeout"
+					value="60000" />
+				<email:property key="mail.smtp.timeout" value="60000" />
+				<email:property key="mail.smtp.writetimeout"
+					value="60000" />
+				<email:property key="mail.debug" value="true" />
+			</email:properties>
+		</email:smtp-connection>
+	</email:smtp-config>
+	<flow name="smtp-integration-with-outlookFlow"
+		doc:id="2447e40a-6e5e-4387-937e-6519c4dc453c">
+		<http:listener doc:name="Listener"
+			doc:id="683b914f-258f-4d7b-a156-cc1dc9950b12"
+			config-ref="HTTP_Listener_config" path="/mail-send"
+			allowedMethods="POST" />
+		<email:send doc:id="1bcb1998-a121-4c84-972d-b7a451451623"
+			config-ref="Email_SMTP_Outlook"
+			fromAddress="usermail-to-send-mail(user must have access to send a mail from to address)"
+			toAddresses="#[from address mail list in array of item format ['mail1','mail2']]"
+			subject="Exciting Opportunity: Join Our Real-Time Project Implementation Program!">
+			<email:body contentType="text/plain">
+				<email:content><![CDATA[#["Hi Team,
+
+We hope this message finds you well.
+
+I’m thrilled to announce that we have scheduled a sample real-time project implementation program. This is a fantastic opportunity for everyone.
+
+Date: $(now() as Date{format:'EEEE MMMM dd'})
+Time: $((now() >> 'IST') as Time{format:'hh:mm:ss.SSS Z a'})
+Location: Hyderabad
+
+Looking forward to an engaging and productive session with all of you!
+
+Best regards,
+Mail: muletrains@mule.org.in
+Mule Trains."]]]></email:content>
+			</email:body>
+		</email:send>
+		<ee:transform doc:name="Transform Message"
+			doc:id="1146f56d-dff5-4272-96c0-24544f06b94f">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
